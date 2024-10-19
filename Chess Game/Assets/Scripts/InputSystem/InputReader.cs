@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 public class InputReader : MonoBehaviour, Controls.IPlayerActions
 {
     private Controls _controls;
+    public Vector2 MovementValue { get; private set; }
     public event Action OnMoveEvent;
     private void Start()
     {
@@ -22,8 +23,12 @@ public class InputReader : MonoBehaviour, Controls.IPlayerActions
       
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (!context.performed) { return; }//check if the action is performed
-        OnMoveEvent?.Invoke();
+        MovementValue = context.ReadValue<Vector2>();
+    }
+
+    public void OnMouseLook(InputAction.CallbackContext context)
+    {
+
     }
 
 }

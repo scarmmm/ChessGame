@@ -3,12 +3,15 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Tile
+  - Unit
+  - ChessBoard
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Chessboard
   - Water
   - UI
   - 
