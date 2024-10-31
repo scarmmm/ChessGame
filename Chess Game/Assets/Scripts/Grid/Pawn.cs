@@ -10,10 +10,12 @@ public class Pawn : MonoBehaviour
     [SerializeField] public CharacterController controller; // Reference to the CharacterController component
     [SerializeField] public Grid _grid;
     [SerializeField] private float playerSpeed = 2.0f;
-    [SerializeField] private GameObject _pawnPrefab;
+    [SerializeField] private GameObject _pawn;
+    [SerializeField] private GameObject _rook;
     [SerializeField] private GameObject _position;
     [SerializeField] private float rotationSpeed = 5.0f;
     [SerializeField] private InputReader inputReader;
+    private List<GameObject> pawns = new List<GameObject>(); // List to store pawns
     private Vector3 playerVelocity;
     private Transform cameraMain;
     Camera Camera;
@@ -26,7 +28,19 @@ public class Pawn : MonoBehaviour
         Debug.Log("World Position: " + worldPosition);
         worldPosition.y = 0;
         transform.position = worldPosition; // Set the position of the pawn to the world position
-        Instantiate(_pawnPrefab, worldPosition, Quaternion.identity);
+        Instantiate(_pawn, worldPosition, Quaternion.identity);
+        for (int i = 1; i < 8; i++) 
+        {
+            Vector3 worldPosition2 = _grid.GetCellCenterWorld(new Vector3Int(0, i, 0));
+            worldPosition2.y = 0;
+            transform.position = worldPosition2; // Set the position of the pawn to the world position
+            GameObject pawnInstance = Instantiate(_pawn, worldPosition2, Quaternion.identity);
+            BoxCollider boxCollider = pawnInstance.AddComponent<BoxCollider>();
+            Targeter targeter = pawnInstance.AddComponent<Targeter>();
+            targeter.renderer = pawnInstance.GetComponent<Renderer>();
+            pawns.Add(pawnInstance);
+        }
+        
     }
 
     // Update is called once per frame
@@ -72,7 +86,7 @@ public class Pawn : MonoBehaviour
             {
                 Debug.Log("Grid Position that we clicked on: " + gridPosition);
                 Debug.Log("World Position of that click is: " + worldPosition2);
-                Instantiate(_pawnPrefab, worldPosition2, Quaternion.identity); //instantiate the pawn at the grid position
+                Instantiate(_pawn, worldPosition2, Quaternion.identity); //instantiate the pawn at the grid position
                // _pawnPrefab.transform.position = worldPosition2; //set the position of the pawn to the world position
           
             }
