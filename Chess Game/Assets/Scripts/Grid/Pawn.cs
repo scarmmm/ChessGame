@@ -15,6 +15,7 @@ public class Pawn : MonoBehaviour
     [SerializeField] private GameObject _position;
     [SerializeField] private float rotationSpeed = 5.0f;
     [SerializeField] private InputReader inputReader;
+    private GameObject selectedPawn;
     private List<GameObject> pawns = new List<GameObject>(); // List to store pawns
     private Vector3 playerVelocity;
     private Transform cameraMain;
@@ -38,7 +39,10 @@ public class Pawn : MonoBehaviour
             BoxCollider boxCollider = pawnInstance.AddComponent<BoxCollider>();
             Targeter targeter = pawnInstance.AddComponent<Targeter>();
             targeter.renderer = pawnInstance.GetComponent<Renderer>();
+            pawnInstance.tag = "Pawn";
+            pawnInstance.layer = LayerMask.NameToLayer("Chessboard"); //for the raycast
             pawns.Add(pawnInstance);
+            
         }
         
     }
@@ -46,28 +50,7 @@ public class Pawn : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        UpdateMovement();
-        //GetCharacterPosition();
         setPosition();
-    }
-    private void UpdateMovement()
-    {
-        Vector3 move = new Vector3(inputReader.MovementValue.x, 0, inputReader.MovementValue.y);
-        move = cameraMain.forward * move.z + cameraMain.right * move.x;
-        move.y = 0;
-        controller.Move(move * Time.deltaTime * playerSpeed);
-
-        if (move != Vector3.zero) //check if the character is moving
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(move); //store the calculated move direction
-            gameObject.transform.rotation = Quaternion.Lerp(gameObject.transform.rotation, targetRotation, Time.deltaTime * rotationSpeed); //rotate the character to the move (target) direction
-        }
-        else
-        {
-
-        }
-
-        controller.Move(playerVelocity * Time.deltaTime);
     }
     private void setPosition()
     {
@@ -81,18 +64,58 @@ public class Pawn : MonoBehaviour
         {
             Vector3 worldMousePosition = hit.point; //get the world position of the mouse
             Vector3Int gridPosition = _grid.WorldToCell(worldMousePosition); //convert the world position to a grid position(this works)
-            Vector3 worldPosition2 = _grid.GetCellCenterWorld(gridPosition); // Get the center of the cell at the grid position
+            Vector3 worldPosition2 = _grid.GetCellCenterWorld(gridPosition); // Get the center of the cell at the grid position and move the peice to that position
             if (Input.GetMouseButtonDown(0))
             {
-                Debug.Log("Grid Position that we clicked on: " + gridPosition);
-                Debug.Log("World Position of that click is: " + worldPosition2);
-                Instantiate(_pawn, worldPosition2, Quaternion.identity); //instantiate the pawn at the grid position
-               // _pawnPrefab.transform.position = worldPosition2; //set the position of the pawn to the world position
+                // this if statement is to select the piece 
+                if (selectedPawn == null)
+                {
+                    // see if we got a hit and the tag is "pawn"
+                    if (hit.collider != null && hit.collider.gameObject.CompareTag("Pawn"))
+                    {
+                        selectedPawn = hit.collider.gameObject; // Select the pawn
+                        Debug.Log("Selected Pawn: " + selectedPawn.name);
+                        Debug.Log("Selected Pawn Position: " + selectedPawn.transform.position);
+                        Debug.Log("Selected Pawn Grid Position: " + gridPosition);
+                    }
+                    else 
+                    {
           
+                    }
+                }
+                else
+                {
+                    // move the selected pawn to the new position
+                    if (isValidPosition(worldPosition2))
+                        {
+                        Debug.Log("Moving selected pawn to: " + worldPosition2);
+                        selectedPawn.transform.position = worldPosition2;
+                        selectedPawn = null; // deselect the pawn after moving
+                        }
+                }
             }
         }
 
     }
+    private bool isValidPosition(Vector3 pos) 
+    {
+        bool isValid = false;
+        if (selectedPawn.CompareTag("Pawn"))
+        {
+           if (pos.x == selectedPawn.transform.position.x + 1 || pos.x == selectedPawn.transform.position.x - 1)
+            {
+                Debug.Log("Valid Position: " + pos);
+                return isValid = true;
+            }
+
+            return isValid;
+        }
+        //will add more logic for other pieces but should be just as simple as this
+
+        return isValid;
+    }
+
+
     private void GetCharacterPosition()
     {
         Vector3 characterPosition = transform.position;
