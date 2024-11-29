@@ -1,3 +1,4 @@
+using Animancer;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,14 +9,18 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
     public GameStates State;
     public static event Action<GameStates> OnGameStateChanged;
+    Pawn pawn;
     // Start is called before the first frame update
     private void Awake()
     {
-        instance = this;
+        if (instance == null)
+        {
+            instance = this;
+        }
     }
     void Start()
     {
-        UpdateGameState(GameStates.SelectPiece); 
+        UpdateGameState(GameStates.PlayerTurn1); 
     }
 
     // Update is called once per frame

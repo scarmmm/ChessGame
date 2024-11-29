@@ -145,6 +145,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Pawn_PreFab
       objectReference: {fileID: 0}
+    - target: {fileID: 3078556132249698505, guid: c4cbf7a638d1375488e98de5795ffa1f,
+        type: 3}
+      propertyPath: m_TagString
+      value: ChessBoard
+      objectReference: {fileID: 0}
     - target: {fileID: 7095600763579194059, guid: c4cbf7a638d1375488e98de5795ffa1f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -153,7 +158,7 @@ PrefabInstance:
     - target: {fileID: 7095600763579194059, guid: c4cbf7a638d1375488e98de5795ffa1f,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1.85
       objectReference: {fileID: 0}
     - target: {fileID: 7095600763579194059, guid: c4cbf7a638d1375488e98de5795ffa1f,
         type: 3}
@@ -285,6 +290,8 @@ MonoBehaviour:
   _position: {fileID: 635685247}
   rotationSpeed: 20
   inputReader: {fileID: 184958024}
+  selectedPawn: {fileID: 0}
+  lastSelectedPiece: {fileID: 0}
 --- !u!4 &184958027 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7095600763579194059, guid: c4cbf7a638d1375488e98de5795ffa1f,
@@ -761,6 +768,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8512423454057705495, guid: 1d1e06b7346f61e48ad1c6c49b609d1d,
+        type: 3}
+      propertyPath: m_TagString
+      value: ChessBoard
+      objectReference: {fileID: 0}
     - target: {fileID: -5198980534157433457, guid: 1d1e06b7346f61e48ad1c6c49b609d1d,
         type: 3}
       propertyPath: m_Lightmapping
@@ -770,6 +782,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Lightmapping
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -214214703274241294, guid: 1d1e06b7346f61e48ad1c6c49b609d1d,
+        type: 3}
+      propertyPath: m_TagString
+      value: ChessBoard
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 1d1e06b7346f61e48ad1c6c49b609d1d,
         type: 3}
@@ -784,7 +801,17 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 1d1e06b7346f61e48ad1c6c49b609d1d,
         type: 3}
       propertyPath: m_TagString
-      value: Untagged
+      value: ChessBoard
+      objectReference: {fileID: 0}
+    - target: {fileID: 3398719192680047429, guid: 1d1e06b7346f61e48ad1c6c49b609d1d,
+        type: 3}
+      propertyPath: m_TagString
+      value: ChessBoard
+      objectReference: {fileID: 0}
+    - target: {fileID: 5183928829312133341, guid: 1d1e06b7346f61e48ad1c6c49b609d1d,
+        type: 3}
+      propertyPath: m_TagString
+      value: ChessBoard
       objectReference: {fileID: 0}
     - target: {fileID: 5831383068044394000, guid: 1d1e06b7346f61e48ad1c6c49b609d1d,
         type: 3}

@@ -9,6 +9,8 @@ TagManager:
   - ChessBoard
   - Pawn
   - Rook
+  - Player2
+  - Player1
   layers:
   - Default
   - TransparentFX

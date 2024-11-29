@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
+using UnityEngine.UIElements;
+using static GameManager;
 
 public class Pawn : MonoBehaviour
 {
@@ -15,13 +17,18 @@ public class Pawn : MonoBehaviour
     [SerializeField] private GameObject _position;
     [SerializeField] private float rotationSpeed = 5.0f;
     [SerializeField] private InputReader inputReader;
-    private GameObject selectedPawn;
+    public GameObject selectedPawn;
+    [SerializeField] public GameObject lastSelectedPiece;
     private List<GameObject> pawns = new List<GameObject>(); // List to store pawns
     private List<GameObject> rooks = new List<GameObject>(); // List to store rooks
     private List<GameObject> pawns2 = new List<GameObject>(); // List to store pawns for player 2
     private List<GameObject> rooks2 = new List<GameObject>(); // List to store rooks for player 2
     private Vector3 playerVelocity;
     private Transform cameraMain;
+    bool player1KingCaptured = false;
+    bool player2KingCaptured = false;
+    public string eliminatedPlayer = "Eliminated";
+    ///public string playerTag1 = "Player1";
     Camera Camera;
     // Start is called before the first frame update
     void Start()
@@ -29,12 +36,12 @@ public class Pawn : MonoBehaviour
         cameraMain = Camera.main.transform;
         //Cursor.visible = false;
         Vector3 worldPosition = _grid.GetCellCenterWorld(new Vector3Int(0, 0, 0)); // Get the world position of the cell at (0, 0)
-       // Debug.Log("World Position: " + worldPosition);
+                                                                                   // Debug.Log("World Position: " + worldPosition);
         worldPosition.y = 0;
         transform.position = worldPosition; // Set the position of the pawn to the world position
         Instantiate(_pawn, worldPosition, Quaternion.identity);
         //player 1 pawns
-        for (int i = 1; i < 8; i++) 
+        for (int i = 1; i < 8; i++)
         {
             Vector3 worldPosition2 = _grid.GetCellCenterWorld(new Vector3Int(0, i, 0));
             Vector3Int gridPosition = _grid.WorldToCell(worldPosition2);
@@ -42,14 +49,19 @@ public class Pawn : MonoBehaviour
             transform.position = worldPosition2; // Set the position of the pawn to the world position
             GameObject pawnInstance = Instantiate(_pawn, worldPosition2, Quaternion.identity);
             BoxCollider boxCollider = pawnInstance.AddComponent<BoxCollider>();
+            boxCollider.isTrigger = true;
+            boxCollider.size = new Vector3(1f, 1f, 1f);
+            Rigidbody rigidbody = pawnInstance.AddComponent<Rigidbody>();
+            rigidbody.useGravity = false;
+            pawnInstance.AddComponent<Overlap>();
             Targeter targeter = pawnInstance.AddComponent<Targeter>();
             targeter.renderer = pawnInstance.GetComponent<Renderer>();
             PieceIdentity id = pawnInstance.AddComponent<PieceIdentity>();
             id.pieceType = ChessPieceType.Player1Pawn;
-            //pawnInstance.tag = "Pawn";  
+            pawnInstance.tag = "Player1";
             pawnInstance.layer = LayerMask.NameToLayer("Chessboard"); //for the raycast
             pawns.Add(pawnInstance);
-            
+
         }
         //player 1 rooks
         for (int i = 0; i < 9; i += 7)
@@ -62,9 +74,10 @@ public class Pawn : MonoBehaviour
             BoxCollider boxCollider = rookInstance.AddComponent<BoxCollider>();
             Targeter targeter = rookInstance.AddComponent<Targeter>();
             targeter.renderer = rookInstance.GetComponent<Renderer>();
-            rookInstance.transform.localScale = new Vector3(3f, 3f, 3f);
+            rookInstance.transform.localScale = new Vector3(1f, 1f, 1f);
             PieceIdentity id = rookInstance.AddComponent<PieceIdentity>();
             id.pieceType = ChessPieceType.Player1Rook;
+            rookInstance.tag = "Player1";
             rookInstance.layer = LayerMask.NameToLayer("Chessboard"); //for the raycast
             rooks.Add(rookInstance);
         }
@@ -78,10 +91,14 @@ public class Pawn : MonoBehaviour
             transform.position = worldPosition2; // Set the position of the pawn to the world position
             GameObject pawnInstance = Instantiate(_pawn, worldPosition2, Quaternion.identity);
             BoxCollider boxCollider = pawnInstance.AddComponent<BoxCollider>();
+            boxCollider.isTrigger = true;
+            boxCollider.size = new Vector3(1f, 1f, 1f);
+            pawnInstance.AddComponent<Overlap>();
             Targeter targeter = pawnInstance.AddComponent<Targeter>();
             targeter.renderer = pawnInstance.GetComponent<Renderer>();
-           // pawnInstance.tag = "Pawn";
-            //pawnInstance.tag = "Player2";   
+            PieceIdentity id = pawnInstance.AddComponent<PieceIdentity>();
+            id.pieceType = ChessPieceType.Player2Pawn;
+            pawnInstance.tag = "Player2";
             pawnInstance.layer = LayerMask.NameToLayer("Chessboard"); //for the raycast
             pawns2.Add(pawnInstance);
         }
@@ -94,6 +111,7 @@ public class Pawn : MonoBehaviour
     void Update()
     {
         setPosition();
+
     }
     private void setPosition()
     {
@@ -120,32 +138,53 @@ public class Pawn : MonoBehaviour
                     {
                         selectedPawn = hit.collider.gameObject; // Select the pawn
                         Debug.Log("Selected Pawn Grid Position: " + gridPosition);
-                  
+                        if (GameManager.instance.State == GameStates.SelectPiece)
+                        {
+                            // Update to the next player's turn
+                            if (GameManager.instance.State == GameStates.PlayerTurn1)
+                            {
+                                GameManager.instance.UpdateGameState(GameStates.PlayerTurn2);
+                            }
+                            else
+                            {
+                                GameManager.instance.UpdateGameState(GameStates.PlayerTurn1);
+                            }
+                        }
                     }
-                    else 
+                    else
                     {
-          
+
                     }
                 }
                 else
                 {
-                        // move the selected pawn to the new position, if the position is valid
+                    // move the selected pawn to the new position, if the position is valid
                     Vector3Int grid = getGridPosition(selectedPawn);
-                    if (isValidPosition(grid,gridPosition))
-                        {
+                    if (isValidPosition(grid, gridPosition))
+                    {
                         selectedPawn.transform.position = _grid.GetCellCenterWorld(gridPosition);
                         //Vector3Int worldPositionGrid = _grid.WorldToCell(worldPosition2);
                         //Debug.Log("Move Valid:" + worldPositionGrid);
                         //selectedPawn.transform.position = worldPosition2;
+                        if (selectedPawn != null)
+                        {
+                            lastSelectedPiece = selectedPawn;
+                        } 
                         selectedPawn = null; // deselect the pawn after moving
-                        }
+                        //Debug.Log("Last Selected Piece: " + lastSelectedPiece);
+                        GameManager.instance.UpdateGameState(GameStates.SelectPiece); // Reset to selecting piece state
+                    }
+                    if (selectedPawn != null)
+                    {
+                        lastSelectedPiece = selectedPawn;
+                    }
                     selectedPawn = null;
+                    Debug.Log("Last Selected Piece: " + lastSelectedPiece);
                 }
             }
         }
-
     }
-    private bool isValidPosition(Vector3Int gridPosition, Vector3Int hitPosition) 
+    private bool isValidPosition(Vector3Int gridPosition, Vector3Int hitPosition)
     {
         bool isValid = false;
         PieceIdentity piece = selectedPawn.GetComponent<PieceIdentity>();
@@ -157,10 +196,10 @@ public class Pawn : MonoBehaviour
                  hitPosition.x == selectedPawnGridPos.x - 1) &&
                 hitPosition.y == selectedPawnGridPos.y)
             {
-               Debug.Log("Valid Position: " + selectedPawnGridPos);
+                Debug.Log("Valid Position: " + selectedPawnGridPos);
                 return isValid = true;
             }
-            else {Debug.Log("Invalid Position: " + selectedPawnGridPos); }
+            else { Debug.Log("Invalid Position: " + selectedPawnGridPos); }
 
             return isValid;
         }
@@ -179,11 +218,10 @@ public class Pawn : MonoBehaviour
             return isValid;
         }
         //will add more logic for other pieces but should be just as simple as this
-
         return isValid;
     }
 
-    Vector3Int getGridPosition (GameObject pawn)
+    Vector3Int getGridPosition(GameObject pawn)
     {
         Vector3Int gridPosition = _grid.WorldToCell(pawn.transform.position);
         Debug.Log("getGridPosition(): " + gridPosition);
@@ -194,4 +232,33 @@ public class Pawn : MonoBehaviour
         Vector3 characterPosition = transform.position;
         Debug.Log("Character Position: " + characterPosition);
     }
+    //private void overlap()
+    //{
+    //    //check if the pieces are overlapping 
+    //    Vector3 position = selectedPawn.transform.position;
+    //    Collider[] hitColliders = Physics.OverlapSphere(position, .75f);
+    //    PieceIdentity piece = selectedPawn.GetComponent<PieceIdentity>();
+    //    string tag = selectedPawn.tag;
+    //    foreach (Collider collider in hitColliders)
+    //    {
+    //        // Check if the collider's GameObject has a different tag
+    //        if ((collider.gameObject != selectedPawn) && collider.tag != tag && collider.tag != "ChessBoard")
+    //        {
+    //            Debug.Log("Overlap Detected with object with a different tag");
+    //            // Destroy the GameObject
+    //            Destroy(collider.gameObject);
+    //        }
+    //    }
+
+    //}
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if (!other.CompareTag(selectedPawn.tag))
+    //    {
+    //        Destroy(other.gameObject);
+    //        Debug.Log("Opponent Piece Destroyed" + other.tag);
+    //    }
+    //}
+ 
 }
+
