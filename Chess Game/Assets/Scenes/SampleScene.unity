@@ -158,7 +158,7 @@ PrefabInstance:
     - target: {fileID: 7095600763579194059, guid: c4cbf7a638d1375488e98de5795ffa1f,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.85
+      value: 7.2
       objectReference: {fileID: 0}
     - target: {fileID: 7095600763579194059, guid: c4cbf7a638d1375488e98de5795ffa1f,
         type: 3}
@@ -292,6 +292,7 @@ MonoBehaviour:
   inputReader: {fileID: 184958024}
   selectedPawn: {fileID: 0}
   lastSelectedPiece: {fileID: 0}
+  eliminatedPlayer: Eliminated
 --- !u!4 &184958027 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7095600763579194059, guid: c4cbf7a638d1375488e98de5795ffa1f,
@@ -949,7 +950,7 @@ Transform:
   m_GameObject: {fileID: 1997161854}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.667023, y: 0.48727155, z: 1.6081786}
+  m_LocalPosition: {x: -0.667023, y: 9.58, z: 1.6081786}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

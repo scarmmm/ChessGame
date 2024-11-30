@@ -34,6 +34,7 @@ public class Pawn : MonoBehaviour
     void Start()
     {
         cameraMain = Camera.main.transform;
+        GameStates state = GameStates.SelectPiece;  
         //Cursor.visible = false;
         Vector3 worldPosition = _grid.GetCellCenterWorld(new Vector3Int(0, 0, 0)); // Get the world position of the cell at (0, 0)
                                                                                    // Debug.Log("World Position: " + worldPosition);
@@ -111,6 +112,11 @@ public class Pawn : MonoBehaviour
     void Update()
     {
         setPosition();
+        if (player1KingCaptured == true || player2KingCaptured == true)
+        {
+            gameOver();
+        }
+        //Debug.Log("Current state: " + GameManager.instance.State);
 
     }
     private void setPosition()
@@ -121,69 +127,105 @@ public class Pawn : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         int layerMask = LayerMask.GetMask("Chessboard");
+        
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
-        {
-            Vector3 worldMousePosition = hit.point; //get the world position of the mouse
-            Vector3Int gridPosition = _grid.WorldToCell(worldMousePosition); //convert the world position to a grid position(this works)
-            Vector3 worldPosition2 = _grid.GetCellCenterWorld(gridPosition); // Get the center of the cell at the grid position and move the peice to that position
-            float posy = gridPosition.y;
-            if (Input.GetMouseButtonDown(0))
+        {  
+            if (hit.collider != null || hit.collider != gameObject.CompareTag("ChessBoard"))
             {
-                // this if statement is to select the piece 
-                if (selectedPawn == null)
+                Vector3 worldMousePosition = hit.point; //get the world position of the mouse
+                Vector3Int gridPosition = _grid.WorldToCell(worldMousePosition); //convert the world position to a grid position(this works)
+                Vector3 worldPosition2 = _grid.GetCellCenterWorld(gridPosition); // Get the center of the cell at the grid position and move the peice to that position
+                float posy = gridPosition.y;
+                if (Input.GetMouseButtonDown(0))
                 {
-                    // see if we got a hit and the tag is "pawn"
-                    PieceIdentity piece = hit.collider.gameObject.GetComponent<PieceIdentity>();
-                    if (hit.collider != null && (piece.pieceType == ChessPieceType.Player1Pawn || piece.pieceType == ChessPieceType.Player2Pawn))
+                    // this if statement is to select the piece 
+                    Debug.Log("Hit = " + hit);
+                    if (selectedPawn == null)
                     {
-                        selectedPawn = hit.collider.gameObject; // Select the pawn
-                        Debug.Log("Selected Pawn Grid Position: " + gridPosition);
-                        if (GameManager.instance.State == GameStates.SelectPiece)
+                        Debug.Log("Game State: " + GameManager.instance.State); 
+                        if (GameManager.instance.State == GameStates.PlayerTurn1)
                         {
-                            // Update to the next player's turn
-                            if (GameManager.instance.State == GameStates.PlayerTurn1)
-                            {
-                                GameManager.instance.UpdateGameState(GameStates.PlayerTurn2);
-                            }
-                            else
-                            {
-                                GameManager.instance.UpdateGameState(GameStates.PlayerTurn1);
-                            }
+                            PlayerTurn(hit, gridPosition, "Player1");
+                           // GameManager.instance.UpdateGameState(GameStates.PlayerTurn2);
                         }
+                        else if (GameManager.instance.State == GameStates.PlayerTurn2)
+                        {
+                            PlayerTurn(hit, gridPosition, "Player2");
+                            //GameManager.instance.UpdateGameState(GameStates.PlayerTurn1);
+                        }
+
                     }
                     else
                     {
+                        // move the selected pawn to the new position, if the position is valid
+                        Vector3Int grid = getGridPosition(selectedPawn);
+                        if (isValidPosition(grid, gridPosition))
+                        {
+                            selectedPawn.transform.position = _grid.GetCellCenterWorld(gridPosition);
 
-                    }
-                }
-                else
-                {
-                    // move the selected pawn to the new position, if the position is valid
-                    Vector3Int grid = getGridPosition(selectedPawn);
-                    if (isValidPosition(grid, gridPosition))
-                    {
-                        selectedPawn.transform.position = _grid.GetCellCenterWorld(gridPosition);
-                        //Vector3Int worldPositionGrid = _grid.WorldToCell(worldPosition2);
-                        //Debug.Log("Move Valid:" + worldPositionGrid);
-                        //selectedPawn.transform.position = worldPosition2;
+                            if (selectedPawn != null)
+                            {
+                                lastSelectedPiece = selectedPawn;
+                            }
+                            selectedPawn = null; // deselect the pawn after moving
+
+                            //GameManager.instance.UpdateGameState(GameStates.SelectPiece); // Reset to selecting piece state
+                        }
                         if (selectedPawn != null)
                         {
                             lastSelectedPiece = selectedPawn;
-                        } 
-                        selectedPawn = null; // deselect the pawn after moving
+                        }
+                        GameManager.instance.UpdateGameState(GameManager.instance.State == GameStates.PlayerTurn1 ? GameStates.PlayerTurn2 : GameStates.PlayerTurn1);
+                        selectedPawn = null;
                         //Debug.Log("Last Selected Piece: " + lastSelectedPiece);
-                        GameManager.instance.UpdateGameState(GameStates.SelectPiece); // Reset to selecting piece state
                     }
-                    if (selectedPawn != null)
-                    {
-                        lastSelectedPiece = selectedPawn;
-                    }
-                    selectedPawn = null;
-                    Debug.Log("Last Selected Piece: " + lastSelectedPiece);
                 }
             }
         }
     }
+    private void PlayerTurn(RaycastHit hit, Vector3Int gridPosition, string player)
+    {
+       PieceIdentity piece = hit.collider.gameObject.GetComponent<PieceIdentity>();
+       // PieceIdentity piece = hit.collider?.gameObject.GetComponent<PieceIdentity>();
+
+        if (piece == null)
+        {
+            Debug.Log("Invalid selection: No piece selected.");
+            return; // Do nothing if no piece is clicked
+        }
+
+        if (selectedPawn == null) // Select piece
+        {
+            if (piece != null && piece.pieceType.ToString().Contains(player))
+            {
+                selectedPawn = hit.collider.gameObject;
+                Debug.Log($"{player} selected {piece.pieceType} at {gridPosition}");
+            }
+            else
+            {
+                Debug.Log("Invalid selection: Not your piece.");
+            }
+        }
+        //the code below is not needed since it will never be executed, but keeping it for reference
+        //else // Move selected piece
+        //{
+        //    if (isValidPosition(getGridPosition(selectedPawn), gridPosition)) // Validate move
+        //    {
+        //        selectedPawn.transform.position = _grid.GetCellCenterWorld(gridPosition);
+        //        Debug.Log($"{player} moved {piece.pieceType} to {gridPosition}");
+
+        //        // Deselect the pawn and pass the turn to the other player
+        //        selectedPawn = null;
+        //        Debug.Log("Update");
+        //        GameManager.instance.UpdateGameState( GameManager.instance.State == GameStates.PlayerTurn1 ? GameStates.PlayerTurn2 : GameStates.PlayerTurn1);
+        //    }
+        //    else
+        //    {
+        //        Debug.Log("Invalid move.");
+        //    }
+        //}
+    }
+
     private bool isValidPosition(Vector3Int gridPosition, Vector3Int hitPosition)
     {
         bool isValid = false;
@@ -232,33 +274,12 @@ public class Pawn : MonoBehaviour
         Vector3 characterPosition = transform.position;
         Debug.Log("Character Position: " + characterPosition);
     }
-    //private void overlap()
-    //{
-    //    //check if the pieces are overlapping 
-    //    Vector3 position = selectedPawn.transform.position;
-    //    Collider[] hitColliders = Physics.OverlapSphere(position, .75f);
-    //    PieceIdentity piece = selectedPawn.GetComponent<PieceIdentity>();
-    //    string tag = selectedPawn.tag;
-    //    foreach (Collider collider in hitColliders)
-    //    {
-    //        // Check if the collider's GameObject has a different tag
-    //        if ((collider.gameObject != selectedPawn) && collider.tag != tag && collider.tag != "ChessBoard")
-    //        {
-    //            Debug.Log("Overlap Detected with object with a different tag");
-    //            // Destroy the GameObject
-    //            Destroy(collider.gameObject);
-    //        }
-    //    }
+    private void gameOver() 
+    {
+        //we will check if the king is captured and update the boolean
+        
 
-    //}
-    //private void OnTriggerEnter(Collider other)
-    //{
-    //    if (!other.CompareTag(selectedPawn.tag))
-    //    {
-    //        Destroy(other.gameObject);
-    //        Debug.Log("Opponent Piece Destroyed" + other.tag);
-    //    }
-    //}
- 
+    }
+
 }
 

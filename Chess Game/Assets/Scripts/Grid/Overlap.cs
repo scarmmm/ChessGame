@@ -43,7 +43,7 @@ public class Overlap : MonoBehaviour
 
             // Destroy the other object
             Debug.Log($"The object destroyed is: {other.gameObject.name}");
-            other.gameObject.tag = pawn.eliminatedPlayer;
+            //other.gameObject.tag = pawn.eliminatedPlayer;
             Destroy(other.gameObject, 0.1f);
 
             // Move the selected piece to the position of the destroyed piece
