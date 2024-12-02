@@ -5,22 +5,29 @@ using UnityEngine;
 public class Targeter : MonoBehaviour
 {
     public Renderer renderer;
+    private Color originalColor;
     void Start()
     {
         renderer = GetComponent<Renderer>();
+        // Store the original material color
+        if (renderer != null && renderer.material != null)
+        {
+            originalColor = renderer.material.color; //this is where we get the material of the game object
+        }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-      
-    }
     private void OnMouseEnter()
     {
-        renderer.material.color = Color.green;
+        if (renderer != null && renderer.material != null)
+        {
+            renderer.material.color = Color.green;
+        }
     }   
     private void OnMouseExit()
     {
-        renderer.material.color = Color.white;
+        if (renderer != null && renderer.material != null)
+        {
+            renderer.material.color = originalColor;
+        }
     }
 }
