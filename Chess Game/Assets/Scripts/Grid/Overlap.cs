@@ -14,11 +14,13 @@ public class Overlap : MonoBehaviour
     {
         if (other.CompareTag("ChessBoard"))
         {
+            Debug.Log("Chessboard");    
             return;
         }
        
         if (pawn == null || pawn.lastSelectedPiece == null)
         {
+            Debug.Log("Pawn or last selected piece is null");
             return;
         }
 
@@ -38,17 +40,16 @@ public class Overlap : MonoBehaviour
         // Check if the other object's tag is NOT the same as this object's tag
         if (!other.CompareTag(gameObject.tag) && !other.CompareTag("ChessBoard"))
         {
-            Debug.Log($"Last selected piece is: {pawn.lastSelectedPiece.name}");
-            Debug.Log($"{gameObject.name} overlaps with {other.name}, which has a different tag: {other.tag}");
-
-            // Destroy the other object
-            Debug.Log($"The object destroyed is: {other.gameObject.name}");
             //other.gameObject.tag = pawn.eliminatedPlayer;
-            Destroy(other.gameObject, 0.1f);
+            //Destroy(other.gameObject, 0.1f);
+            other.gameObject.SetActive(false);
 
             // Move the selected piece to the position of the destroyed piece
             Vector3 otherPiecePos = other.gameObject.transform.position;
+            float posy = gameObject.transform.position.y;
             gameObject.transform.position = otherPiecePos;
+            gameObject.transform.position = new Vector3(gameObject.transform.position.x, posy, gameObject.transform.position.z);
+
         }
         else
         {
